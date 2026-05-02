@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Neural RAG Architecture | Advanced Retrieval Engine</title>
+  <style>
+    /* CSS Variables - Defined for consistency and easy updates */
+    :root {
+      --bg-color: #0b0f19;
+      /* Dark background */
+      --grid-line-color: rgba(56, 189, 248, 0.05);
+      --surface-color: rgba(20, 27, 45, 0.75);
+      /* Translucent cards */
+      --border-color: rgba(56, 189, 248, 0.25);
+      /* Cyan border */
+      --accent-primary: #38bdf8;
+      /* Cyan */
+      --accent-secondary: #818cf8;
+      /* Indigo */
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-highlight: #ffffff;
+      --glass-blur: blur(16px);
+    }
+
+    /* Basic Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    /* Main Page Styling */
+    body {
+      background-color: var(--bg-color);
+      background-image:
+        linear-gradient(var(--grid-line-color) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-line-color) 1px, transparent 1px);
+      background-size: 40px 40px;
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+      overflow-x: hidden;
+    }
+
+    /* --- Header Section --- */
+    header {
+      text-align: center;
+      margin-bottom: 3.5rem;
+      animation: fadeInDown 0.8s ease-out;
+      max-width: 800px;
+    }
+
+    .iit-logo-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 1.5rem;
+    }
+
+    /* Stylized Fusion Logo (IIT Tower + Neural Network) */
+    .iit-ai-logo {
+      width: 80px;
+      height: 80px;
+      fill: none;
+      stroke: var(--accent-primary);
+      stroke-width: 1.5;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 10px;
+      border-radius: 50%;
+      border: 2px solid var(--border-color);
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.2);
+    }
+
+    h1 {
+      font-size: 3rem;
+      font-weight: 800;
+      background: linear-gradient(to right, var(--accent-primary), var(--accent-secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.75rem;
+      letter-spacing: -1px;
+      line-height: 1.1;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 1.2rem;
+      font-weight: 400;
+      margin-bottom: 1rem;
+    }
+
+    /* --- Main Container --- */
+    .rag-wrapper {
+      width: 100%;
+      max-width: 1100px;
+      position: relative;
+      /* For background graphics */
+      animation: fadeIn 1s ease-out 0.2s both;
+    }
+
+    /* Faded Background Graph/Robot Overlay */
+    .background-overlay-graphic {
+      position: absolute;
+      top: 50px;
+      left: -100px;
+      width: 400px;
+      height: 400px;
+      opacity: 0.1;
+      fill: none;
+      stroke: var(--accent-secondary);
+      stroke-width: 0.5;
+      pointer-events: none;
+    }
+
+    .background-overlay-graphic-right {
+      position: absolute;
+      bottom: -50px;
+      right: -100px;
+      width: 300px;
+      height: 300px;
+      opacity: 0.08;
+      fill: none;
+      stroke: var(--accent-primary);
+      stroke-width: 0.5;
+      pointer-events: none;
+    }
+
+    /* --- Input/Query Area --- */
+    .query-container {
+      position: relative;
+      margin-bottom: 3rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      border-radius: 16px;
+    }
+
+    .query-input {
+      width: 100%;
+      padding: 1.5rem;
+      font-size: 1.2rem;
+      line-height: 1.6;
+      background: var(--surface-color);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      color: var(--text-main);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      transition: all 0.3s ease;
+    }
+
+    .query-input:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 25px rgba(56, 189, 248, 0.15);
+    }
+
+    .query-input::placeholder {
+      color: #475569;
+    }
+
+    .generate-btn {
+      position: absolute;
+      right: 12px;
+      top: 12px;
+      bottom: 12px;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      border: none;
+      padding: 0 1.8rem;
+      border-radius: 10px;
+      color: #fff;
+      font-weight: 700;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .generate-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(56, 189, 248, 0.3);
+    }
+
+    /* --- Results Layout (Two Columns) --- */
+    .results-layout {
+      display: grid;
+      grid-template-columns: 1fr 1.5fr;
+      gap: 2.5rem;
+    }
+
+    /* Common Card Style (Glassmorphism) */
+    .card {
+      background: var(--surface-color);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 2rem;
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      height: 100%;
+      position: relative;
+    }
+
+    .card-header {
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--accent-primary);
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+    }
+
+    /* Context Panel (Left) */
+    .context-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .context-block {
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: var(--text-muted);
+      background: rgba(0, 0, 0, 0.2);
+      padding: 1.2rem;
+      border-radius: 10px;
+      border-left: 3px solid rgba(148, 163, 184, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .context-block:hover {
+      border-left-color: var(--accent-primary);
+      background: rgba(0, 0, 0, 0.3);
+      color: var(--text-main);
+    }
+
+    .source-meta {
+      font-size: 0.8rem;
+      color: var(--accent-secondary);
+      margin-bottom: 0.6rem;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .relevance-data {
+      color: #48bb78;
+      /* Green for high confidence */
+      font-weight: 600;
+    }
+
+    /* Synthesis Panel (Right) */
+    .kb-response {
+      font-size: 1.1rem;
+      line-height: 1.8;
+      color: var(--text-main);
+    }
+
+    .kb-response p {
+      margin-bottom: 1.2rem;
+    }
+
+    .kb-response strong {
+      color: var(--text-highlight);
+      font-weight: 600;
+    }
+
+    /* Internal Graphic on Right Card */
+    .card-internal-graphic {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      width: 100px;
+      height: 100px;
+      opacity: 0.2;
+      pointer-events: none;
+    }
+
+    /* --- Processing Indicator --- */
+    .loading-state {
+      display: none;
+      /* Hidden by default */
+      align-items: center;
+      gap: 15px;
+      color: var(--accent-primary);
+      font-size: 1rem;
+      margin-bottom: 2rem;
+      padding-left: 0.5rem;
+    }
+
+    .animated-spinner {
+      width: 12px;
+      height: 12px;
+      background-color: var(--accent-primary);
+      border-radius: 50%;
+      animation: pulseCycle 1.5s infinite;
+    }
+
+    /* --- Animations --- */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes pulseCycle {
+      0% {
+        transform: scale(0.9);
+        box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7);
+      }
+
+      70% {
+        transform: scale(1.1);
+        box-shadow: 0 0 0 8px rgba(56, 189, 248, 0);
+      }
+
+      100% {
+        transform: scale(0.9);
+        box-shadow: 0 0 0 0 rgba(56, 189, 248, 0);
+      }
+    }
+
+    /* --- Responsive Tweaks --- */
+    @media (max-width: 900px) {
+      h1 {
+        font-size: 2.2rem;
+      }
+
+      .results-layout {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+
+      .query-input {
+        font-size: 1rem;
+        padding: 1.2rem 8rem 1.2rem 1.2rem;
+      }
+
+      .generate-btn {
+        font-size: 1rem;
+        padding: 0 1.2rem;
+      }
+
+      .background-overlay-graphic,
+      .background-overlay-graphic-right {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <script type="module">
+    import Chatbot from "https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js"
+    Chatbot.init({
+      chatflowid: "9326544b-1314-4040-8951-2b6b18789ae4",
+      apiHost: "https://cloud.flowiseai.com",
+    })
+  </script>
+
+  <header>
+    <div class="iit-logo-area">
+      <!-- Custom Fusion Logo SVG: IIT Tower + Neural Nodes -->
+      <svg class="iit-ai-logo" viewBox="0 0 100 100">
+        <path d="M40 85h20M50 85V65M45 65l-10-5M55 65l10-5" stroke-linecap="round" />
+        <path d="M50 65c8.28 0 15-6.72 15-15s-6.72-15-15-15-15 6.72-15 15 6.72 15 15 15z" stroke-width="2" />
+        <circle cx="50" cy="50" r="3" fill="var(--accent-primary)" />
+        <circle cx="35" cy="60" r="3" fill="var(--accent-secondary)" />
+        <circle cx="65" cy="60" r="3" fill="var(--accent-secondary)" />
+        <circle cx="50" cy="35" r="3" fill="var(--accent-primary)" />
+        <path d="M50 35L35 60M50 35L65 60M35 60L65 60" />
+      </svg>
+    </div>
+    <h1>IIT-AI Lab | Neural RAG</h1>
+    <p class="subtitle">Context-Aware Generation Engine</p>
+  </header>
+
+  <div class="rag-wrapper">
+    <!-- Faded Background Graph Overlay -->
+    <svg class="background-overlay-graphic" viewBox="0 0 100 100">
+      <path d="M10 50 L90 50 M50 10 L50 90" stroke-opacity="0.5" />
+      <circle cx="50" cy="50" r="5" />
+      <circle cx="30" cy="30" r="5" />
+      <circle cx="70" cy="70" r="5" />
+      <path d="M30 30 L50 50 L70 70" />
+    </svg>
+
+    <div class="query-container">
+      <input type="text" id="userInput" class="query-input"
+        placeholder="Query the vector database (e.g., Stochastic gradient descent explain)..." autocomplete="off">
+      <button class="generate-btn" id="generateBtn">Generate</button>
+    </div>
+
+    <!-- Simulated Loading State (Initially Hidden) -->
+    <div class="loading-state" id="loadingState">
+      <div class="animated-spinner"></div>
+      Analyzing vectors & synthesizing context-aware response...
+    </div>
+
+    <div class="results-layout active" id="resultsLayout">
+      <!-- Left Column: Retrieved Context -->
+      <div class="card context-panel">
+        <div class="card-header">
+          <!-- Specific PDF/Paper Icon -->
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+          </svg>
+          Retrieved Knowledge
+        </div>
+        <div class="context-stack">
+          <div class="context-block">
+            <div class="source-meta">
+              <span>Optimization_Ch4.pdf</span>
+              <span class="relevance-data">Relevance Score: 0.92</span>
+            </div>
+            When training large neural networks on huge datasets, evaluating the standard gradient is computationally
+            expensive. Stochastic Gradient Descent (SGD) solves this by replacing the actual gradient with an estimate
+            thereof, calculated from a randomly selected subset.
+          </div>
+          <div class="context-block">
+            <div class="source-meta">
+              <span>ML_Notes_DeepLearning.md</span>
+              <span class="relevance-data">Relevance Score: 0.88</span>
+            </div>
+            Unlike standard gradient descent, which requires a full pass through the dataset (epoch) before a single
+            weight update, SGD performs an update after seeing just one training example, resulting in faster (but
+            noisier) convergence.
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Generated Output -->
+      <div class="card response-panel">
+        <div class="card-header">
+          <!-- Specific Knowledge/Star Icon -->
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon
+              points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+          </svg>
+          Generated Synthesis
+        </div>
+        <div class="kb-response">
+          <p>Based on the retrieved mathematical concepts, <strong>Stochastic Gradient Descent (SGD)</strong> is an
+            efficient optimization algorithm crucial for training models on large-scale datasets.</p>
+          <p>Unlike traditional gradient descent that calculates errors across the entire dataset (a batch), SGD
+            computes the gradient and updates the parameters using only a single training example or a mini-batch. This
+            approach dramatically reduces computational cost per iteration, allowing for rapid updates, albeit
+            introducing noise into the convergence path.</p>
+        </div>
+        <!-- Faded Internal Graphic (Wireframe Head) -->
+        <svg class="card-internal-graphic" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="0.5"
+          stroke-opacity="0.3">
+          <path
+            d="M50 10 c-20 0 -35 15 -35 35 0 10 5 20 15 25 L35 90 H65 L70 70 c10 -5 15 -15 15 -25 0 -20 -15 -35 -35 -35 z" />
+          <path d="M40 40h20 M45 50h10" />
+        </svg>
+      </div>
+    </div>
+  </div>
+
+</body>
+
+</html>
