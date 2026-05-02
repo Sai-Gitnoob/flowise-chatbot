@@ -1,0 +1,8 @@
+Project Title:
+6. Document Q&A Assistant (Mini RAG) (AI based RAG Model)
+
+Link to the Workflow:
+https://cloud.flowiseai.com/canvas/9326544b-1314-4040-8951-2b6b18789ae4
+
+
+
